@@ -3,115 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workout Tracker</title>
+    <title>ProFit Tracker</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Add Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <header>
-        <h1>My Workout Tracker</h1>
-        <button id="logout-btn">Logout</button>
-    </header>
-
-    <main>
-        <section id="page-auth" class="page">
+    <!-- AUTH PAGE -->
+    <section id="page-auth" class="page active">
+        <div class="auth-container">
+            <h1 class="brand-title">ProFit <span class="accent">Tracker</span></h1>
+            <p class="brand-subtitle">Level Up Your Fitness</p>
+            
             <div class="auth-flipper">
+                <!-- Login -->
                 <div class="auth-card auth-front">
                     <form id="login-form" class="auth-form">
-                        <h2>Login</h2>
-                        <input type="email" id="login-email" placeholder="Email" required>
-                        <input type="password" id="login-password" placeholder="Password" required>
-                        <button type="submit">Login</button>
-                        <p>New user? <a href="#" id="show-register">Register here</a></p>
+                        <h2>Welcome Back</h2>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="login-email" placeholder="Email" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="login-password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn-primary">LOGIN</button>
+                        <p>New here? <a href="#" id="show-register">Start your journey</a></p>
                     </form>
                 </div>
+                <!-- Register -->
                 <div class="auth-card auth-back">
                     <form id="register-form" class="auth-form">
-                        <h2>Register</h2>
-                        <input type="email" id="register-email" placeholder="Email" required>
-                        <input type="password" id="register-password" placeholder="Password" required>
-                        <button type="submit">Register</button>
-                        <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+                        <h2>Join the Club</h2>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="register-email" placeholder="Email" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="register-password" placeholder="Password (min 6 chars)" required>
+                        </div>
+                        <button type="submit" class="btn-primary">REGISTER</button>
+                        <p>Already a pro? <a href="#" id="show-login">Login here</a></p>
                     </form>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="page-main-dashboard" class="page">
+    <!-- MAIN APP STRUCTURE -->
+    <div id="app-layout" style="display: none;">
+        
+        <!-- Top Header -->
+        <header>
+            <div class="header-content">
+                <div class="logo">ProFit <span class="accent">Tracker</span></div>
+                <button id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <!-- Motivation Banner -->
+            <div id="motivation-banner">
+                <p id="daily-quote">"The only bad workout is the one that didn't happen."</p>
+            </div>
+        </header>
+
+        <main>
             
-            <div id="dashboard-container">
-                <h2>Your Progress</h2>
+            <!-- 1. DASHBOARD PAGE -->
+            <section id="page-dashboard" class="page-view active">
+                <h2>Dashboard</h2>
                 
-                <div class="chart-widget">
-                    <label for="chart-muscle-select">Track Volume:</label>
-                    <select id="chart-muscle-select">
-                        <option value="all">Overall Progress</option>
-                    </select>
-                    <div class="chart-container">
-                        <canvas id="progress-chart"></canvas>
+                <!-- Charts -->
+                <div class="dashboard-grid">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3>Volume Progress</h3>
+                            <select id="chart-muscle-select">
+                                <option value="all">Overall Volume</option>
+                            </select>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="progress-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card chart-card">
+                        <h3>Muscle Split (30 Days)</h3>
+                        <div class="chart-wrapper doughnut-wrapper">
+                            <canvas id="muscle-doughnut-chart"></canvas>
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="chart-widget">
-                    <h3>Muscle Breakdown (Last 30 Days)</h3>
-                    <div class="chart-container doughnut-container">
-                        <canvas id="muscle-doughnut-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <hr>
-
-            <div id="log-flow-container">
-                <h2>Log a Workout</h2>
+            <!-- 2. LOG WORKOUT PAGE (The Wizard) -->
+            <section id="page-tracker" class="page-view">
+                <h2>Track Workout</h2>
                 
-                <div id="log-step-muscles" class="log-step active">
-                    <h3>Step 1: Select Muscle Group</h3>
-                    <div id="muscle-list" class="grid-container">
-                        </div>
-                </div>
+                <div id="log-flow-container">
+                    <!-- Step 1 -->
+                    <div id="log-step-muscles" class="log-step active">
+                        <h3>Target Muscle</h3>
+                        <div id="muscle-list" class="grid-buttons"></div>
+                    </div>
 
-                <div id="log-step-exercises" class="log-step">
-                    <button class="back-btn" data-target="log-step-muscles">&larr; Back to Muscles</button>
-                    <h3 id="exercise-list-title">Step 2: Select Exercise</h3>
-                    <div id="exercise-list" class="list-container">
-                        </div>
-                </div>
+                    <!-- Step 2 -->
+                    <div id="log-step-exercises" class="log-step">
+                        <button class="back-link" data-target="log-step-muscles"><i class="fas fa-arrow-left"></i> Back to Muscles</button>
+                        <h3 id="exercise-list-title">Select Exercise</h3>
+                        <div id="exercise-list" class="list-buttons"></div>
+                    </div>
 
-                <div id="log-step-entry" class="log-step">
-                    <button class="back-btn" data-target="log-step-exercises">&larr; Back to Exercises</button>
-                    <h3 id="log-entry-title">Step 3: Log Sets</h3>
-                    <form id="log-form">
-                        <div id="set-entries">
+                    <!-- Step 3 -->
+                    <div id="log-step-entry" class="log-step">
+                        <button class="back-link" data-target="log-step-exercises"><i class="fas fa-arrow-left"></i> Back to Exercises</button>
+                        <h3 id="log-entry-title">Log Sets</h3>
+                        <form id="log-form">
+                            <div id="set-entries"></div>
+                            <div class="form-actions">
+                                <button type="button" id="add-set-btn" class="btn-secondary">+ Add Set</button>
+                                <button type="submit" class="btn-primary">Save Workout</button>
                             </div>
-                        <button type="button" id="add-set-btn">Add Set</button>
-                        <button type="submit">Save Workout</button>
-                    </form>
+                        </form>
+                    </div>
                 </div>
+            </section>
 
-            </div>
+            <!-- 3. HISTORY PAGE (The Table) -->
+            <section id="page-history" class="page-view">
+                <h2>Workout History</h2>
+                
+                <div class="card">
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <label>Filter Date:</label>
+                            <input type="date" id="log-filter-date">
+                        </div>
+                        <button id="log-filter-clear" class="btn-small">Clear</button>
+                    </div>
+                    
+                    <div class="table-responsive" id="log-table-container">
+                        <p style="text-align:center; color:#888;">Loading your history...</p>
+                    </div>
+                </div>
+            </section>
 
-        </section>
-    </main>
+            <!-- 4. GUIDE PAGE (For Noobies) -->
+            <section id="page-guide" class="page-view">
+                <h2>Beginner's Guide</h2>
+                <div class="guide-grid">
+                    <div class="card guide-card">
+                        <i class="fas fa-dumbbell icon-large"></i>
+                        <h3>Warm Up First</h3>
+                        <p>Never skip warm-ups. 5-10 minutes of light cardio or dynamic stretching prepares your muscles and prevents injury.</p>
+                    </div>
+                    <div class="card guide-card">
+                        <i class="fas fa-water icon-large"></i>
+                        <h3>Hydration</h3>
+                        <p>Drink water before, during, and after your workout. Muscles need hydration to recover and perform.</p>
+                    </div>
+                    <div class="card guide-card">
+                        <i class="fas fa-bed icon-large"></i>
+                        <h3>Rest Days</h3>
+                        <p>Muscles grow while you sleep, not while you lift. Aim for 7-9 hours of sleep and take rest days.</p>
+                    </div>
+                    <div class="card guide-card">
+                        <i class="fas fa-clipboard-list icon-large"></i>
+                        <h3>Progressive Overload</h3>
+                        <p>To grow, you must increase difficulty over time. Add more weight, reps, or sets gradually.</p>
+                    </div>
+                </div>
+            </section>
 
+        </main>
+
+        <!-- Bottom Navigation Bar (App-like feel) -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-target="page-dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-target="page-tracker">
+                <i class="fas fa-plus-circle"></i>
+                <span>Track</span>
+            </button>
+            <button class="nav-item" data-target="page-history">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </button>
+            <button class="nav-item" data-target="page-guide">
+                <i class="fas fa-book-open"></i>
+                <span>Guide</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Firebase & Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
     <script>
-        // --- PASTE YOUR FIREBASE CONFIG HERE ---
-         const firebaseConfig = {
-  apiKey: "AIzaSyDOjKlUpCu0MrDMfsoNv1zjW5hLEIq_CAE",
-  authDomain: "workout-app-767ec.firebaseapp.com",
-  projectId: "workout-app-767ec",
-  storageBucket: "workout-app-767ec.firebasestorage.app",
-  messagingSenderId: "472177937434",
-  appId: "1:472177937434:web:ff1424e6c9ce9963d415a3",
-  measurementId: "G-YVWTSRGWW3"
-};
-        // ----------------------------------------
-
+        const firebaseConfig = {
+          apiKey: "AIzaSyDOjKlUpCu0MrDMfsoNv1zjW5hLEIq_CAE",
+          authDomain: "workout-app-767ec.firebaseapp.com",
+          projectId: "workout-app-767ec",
+          storageBucket: "workout-app-767ec.firebasestorage.app",
+          messagingSenderId: "472177937434",
+          appId: "1:472177937434:web:ff1424e6c9ce9963d415a3",
+          measurementId: "G-YVWTSRGWW3"
+        };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
