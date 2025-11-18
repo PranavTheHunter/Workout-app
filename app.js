@@ -1,40 +1,41 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. DEFINE YOUR DATA ---
+    // --- 1. DATA & CONFIG ---
     const exercises = {
-        'Chest': ['Bench Press', 'Dumbbell Press', 'Incline Bench Press', 'Push-ups', 'Dips'],
-        'Back': ['Pull-ups', 'Deadlift', 'Bent-Over Row', 'Lat Pulldown', 'T-Bar Row'],
-        'Legs': ['Squat', 'Leg Press', 'Lunges', 'Romanian Deadlift', 'Leg Curls'],
-        'Shoulders': ['Overhead Press', 'Lateral Raises', 'Front Raises', 'Face Pulls'],
-        'Biceps': ['Bicep Curls', 'Hammer Curls', 'Preacher Curls'],
-        'Triceps': ['Tricep Pushdown', 'Skullcrushers', 'Close-Grip Bench Press'],
+        'Chest': ['Bench Press', 'Dumbbell Press', 'Incline Bench Press', 'Push-ups', 'Dips', 'Chest Flys'],
+        'Back': ['Pull-ups', 'Deadlift', 'Bent-Over Row', 'Lat Pulldown', 'Seated Row', 'T-Bar Row'],
+        'Legs': ['Squat', 'Leg Press', 'Lunges', 'Romanian Deadlift', 'Leg Extension', 'Calf Raises'],
+        'Shoulders': ['Overhead Press', 'Lateral Raises', 'Front Raises', 'Face Pulls', 'Shrugs'],
+        'Biceps': ['Barbell Curl', 'Dumbbell Curl', 'Hammer Curl', 'Preacher Curl'],
+        'Triceps': ['Tricep Pushdown', 'Skullcrushers', 'Dips', 'Overhead Extension'],
         'Abs': ['Crunches', 'Leg Raises', 'Plank', 'Russian Twist', 'Cable Crunches']
     };
 
-    // --- 2. GET ELEMENT REFERENCES ---
-    const pages = document.querySelectorAll('.page');
-    const authPage = document.getElementById('page-auth');
-    const mainDashboardPage = document.getElementById('page-main-dashboard');
-    const logoutBtn = document.getElementById('logout-btn');
+    const quotes = [
+        "The only bad workout is the one that didn't happen.",
+        "Sore today, strong tomorrow.",
+        "Don't stop when you're tired. Stop when you're done.",
+        "Your body can stand almost anything. It’s your mind that you have to convince.",
+        "Fitness is not about being better than someone else. It’s about being better than you were yesterday."
+    ];
 
-    // Auth page
+    // --- 2. ELEMENT REFERENCES ---
+    // Auth
+    const authPage = document.getElementById('page-auth');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
     const showRegisterBtn = document.getElementById('show-register');
     const showLoginBtn = document.getElementById('show-login');
+    const appLayout = document.getElementById('app-layout');
+    const logoutBtn = document.getElementById('logout-btn');
 
-    // Main Dashboard Page
-    const dashboardContainer = document.getElementById('dashboard-container');
-    const logFlowContainer = document.getElementById('log-flow-container');
+    // Navigation & Views
+    const navItems = document.querySelectorAll('.nav-item');
+    const pageViews = document.querySelectorAll('.page-view');
+    const motivationText = document.getElementById('daily-quote');
+
+    // Tracker Flow
     const logSteps = document.querySelectorAll('.log-step');
-    const backBtns = document.querySelectorAll('.back-btn');
-
-    // Chart elements
-    const chartMuscleSelect = document.getElementById('chart-muscle-select');
-    const lineChartCanvas = document.getElementById('progress-chart');
-    const doughnutChartCanvas = document.getElementById('muscle-doughnut-chart');
-
-    // Log flow elements
     const muscleList = document.getElementById('muscle-list');
     const exerciseList = document.getElementById('exercise-list');
     const exerciseListTitle = document.getElementById('exercise-list-title');
@@ -42,100 +43,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const logForm = document.getElementById('log-form');
     const setEntries = document.getElementById('set-entries');
     const addSetBtn = document.getElementById('add-set-btn');
+    const backLinks = document.querySelectorAll('.back-link');
 
-    // --- 3. APP STATE ---
+    // Charts & History
+    const chartMuscleSelect = document.getElementById('chart-muscle-select');
+    const lineChartCanvas = document.getElementById('progress-chart');
+    const doughnutChartCanvas = document.getElementById('muscle-doughnut-chart');
+    const logTableContainer = document.getElementById('log-table-container');
+    const logFilterDate = document.getElementById('log-filter-date');
+    const logFilterClear = document.getElementById('log-filter-clear');
+
+    // State
     let currentUser = null;
     let currentMuscle = '';
     let currentExercise = '';
-    let workoutLogs = []; // Local cache of user's workouts
+    let workoutLogs = [];
     let lineChartInstance = null;
     let doughnutChartInstance = null;
 
-    // --- 4. AUTHENTICATION LOGIC ---
 
-    // Main auth state listener
+    // --- 3. INITIALIZATION ---
+    
+    // Set random quote
+    motivationText.textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+
+    // Auth Listener
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
-            logoutBtn.style.display = 'block';
-            showMainPage('page-main-dashboard');
-            // Fetch data and draw charts *after* showing the page
+            authPage.classList.remove('active');
+            appLayout.style.display = 'block'; // Show main app
             fetchWorkoutsAndDrawCharts();
+            switchTab('page-dashboard'); // Default to dashboard
         } else {
             currentUser = null;
-            logoutBtn.style.display = 'none';
-            showMainPage('page-auth');
+            appLayout.style.display = 'none';
+            authPage.classList.add('active');
         }
     });
-    
-    // Auth form flipping
-    showRegisterBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        authPage.classList.add('show-register');
-    });
-    showLoginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        authPage.classList.remove('show-register');
+
+    // --- 4. NAVIGATION LOGIC ---
+
+    // Tab Switching
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const targetId = item.getAttribute('data-target');
+            switchTab(targetId);
+        });
     });
 
-    // Handle Registration
+    function switchTab(pageId) {
+        // Update Bottom Nav UI
+        navItems.forEach(nav => {
+            nav.classList.toggle('active', nav.getAttribute('data-target') === pageId);
+        });
+
+        // Show Section
+        pageViews.forEach(view => {
+            view.classList.toggle('active', view.id === pageId);
+        });
+    }
+
+    // Auth Flipping
+    showRegisterBtn.addEventListener('click', (e) => { e.preventDefault(); authPage.classList.add('show-register'); });
+    showLoginBtn.addEventListener('click', (e) => { e.preventDefault(); authPage.classList.remove('show-register'); });
+    
+    // Auth Forms
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const email = registerForm['register-email'].value;
-        const password = registerForm['register-password'].value;
-        auth.createUserWithEmailAndPassword(email, password)
-            .catch(error => alert(error.message));
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        auth.createUserWithEmailAndPassword(email, password).catch(err => alert(err.message));
     });
 
-    // Handle Login
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const email = loginForm['login-email'].value;
-        const password = loginForm['login-password'].value;
-        auth.signInWithEmailAndPassword(email, password)
-            .catch(error => alert(error.message));
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        auth.signInWithEmailAndPassword(email, password).catch(err => alert(err.message));
     });
 
-    // Handle Logout
-    logoutBtn.addEventListener('click', () => {
-        auth.signOut();
-    });
+    logoutBtn.addEventListener('click', () => auth.signOut());
 
-    // --- 5. PAGE NAVIGATION LOGIC ---
 
-    // Show a top-level page (Auth or Main)
-    function showMainPage(pageId) {
-        pages.forEach(page => {
-            page.classList.toggle('active', page.id === pageId);
-        });
-    }
+    // --- 5. TRACKER LOGIC (The Wizard) ---
 
-    // Show a step within the logging flow
-    function showLogStep(stepId) {
-        logSteps.forEach(step => {
-            step.classList.toggle('active', step.id === stepId);
-        });
-        // Scroll to the logging section
-        logFlowContainer.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // Back buttons in log flow
-    backBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetStep = btn.getAttribute('data-target');
-            showLogStep(targetStep);
-        });
-    });
-
-    // --- 6. WORKOUT LOGGING FLOW ---
-
-    // Populate Muscle List (Step 1)
+    // Step 1: Muscles
     function populateMuscleList() {
         muscleList.innerHTML = '';
         Object.keys(exercises).forEach(muscle => {
             const btn = document.createElement('button');
             btn.className = 'muscle-btn';
-            btn.textContent = muscle;
+            btn.innerHTML = `<i class="fas fa-dumbbell"></i> ${muscle}`;
             btn.addEventListener('click', () => {
                 currentMuscle = muscle;
                 populateExerciseList(muscle);
@@ -145,11 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Populate Exercise List (Step 2)
+    // Step 2: Exercises
     function populateExerciseList(muscle) {
         exerciseList.innerHTML = '';
-        exerciseListTitle.textContent = `Step 2: Select ${muscle} Exercise`;
-        
+        exerciseListTitle.textContent = `Select ${muscle} Exercise`;
         exercises[muscle].forEach(exercise => {
             const btn = document.createElement('button');
             btn.className = 'exercise-btn';
@@ -163,238 +161,262 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Setup Log Form (Step 3)
+    // Step 3: Form
     function setupLogForm() {
-        logEntryTitle.textContent = `Step 3: Log ${currentExercise}`;
-        setEntries.innerHTML = ''; 
-        addSet(); // Add first set
+        logEntryTitle.textContent = `Log: ${currentExercise}`;
+        setEntries.innerHTML = '';
+        addSet();
     }
 
-    // Add a set row to the form
     function addSet() {
         const setNumber = setEntries.children.length + 1;
-        const setRow = document.createElement('div');
-        setRow.className = 'set-row';
-        setRow.innerHTML = `
-            <label>Set ${setNumber}</label>
+        const row = document.createElement('div');
+        row.className = 'set-row';
+        row.innerHTML = `
+            <span class="set-label">#${setNumber}</span>
             <input type="number" class="reps-input" placeholder="Reps" required>
-            <input type="number" class="weight-input" placeholder="Weight (kg)" required>
+            <input type="number" class="weight-input" placeholder="Kg" required>
             <button type="button" class="remove-set-btn">&times;</button>
         `;
-        setRow.querySelector('.remove-set-btn').addEventListener('click', (e) => {
+        
+        row.querySelector('.remove-set-btn').addEventListener('click', (e) => {
             e.target.closest('.set-row').remove();
-            // Re-number sets
-            setEntries.querySelectorAll('.set-row label').forEach((label, index) => {
-                label.textContent = `Set ${index + 1}`;
-            });
+            renumberSets();
         });
-        setEntries.appendChild(setRow);
+        setEntries.appendChild(row);
     }
+
+    function renumberSets() {
+        const rows = setEntries.querySelectorAll('.set-row');
+        rows.forEach((row, index) => {
+            row.querySelector('.set-label').textContent = `#${index + 1}`;
+        });
+    }
+
+    // Navigation helpers for the tracker flow
+    function showLogStep(stepId) {
+        logSteps.forEach(step => step.classList.toggle('active', step.id === stepId));
+    }
+    backLinks.forEach(btn => {
+        btn.addEventListener('click', () => showLogStep(btn.getAttribute('data-target')));
+    });
     addSetBtn.addEventListener('click', addSet);
 
-    // Handle Form Submission (Save Workout)
+    // Save Workout
     logForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (!currentUser) return;
 
         const sets = [];
-        const setRows = setEntries.querySelectorAll('.set-row');
-        
-        setRows.forEach(row => {
+        setEntries.querySelectorAll('.set-row').forEach(row => {
             const reps = row.querySelector('.reps-input').value;
             const weight = row.querySelector('.weight-input').value;
-            if (reps && weight) {
-                sets.push({ reps: parseInt(reps), weight: parseFloat(weight) });
-            }
+            if(reps && weight) sets.push({ reps: Number(reps), weight: Number(weight) });
         });
 
-        if (sets.length === 0) {
-            alert("Please enter at least one set.");
-            return;
-        }
+        if (sets.length === 0) return alert("Add at least one set!");
 
+        const totalVolume = sets.reduce((sum, s) => sum + (s.reps * s.weight), 0);
+        
         const logEntry = {
             userId: currentUser.uid,
-            date: new Date().toISOString().split('T')[0], // 'YYYY-MM-DD'
+            date: new Date().toISOString().split('T')[0],
             muscle: currentMuscle,
             exercise: currentExercise,
             sets: sets,
-            totalVolume: sets.reduce((total, set) => total + (set.reps * set.weight), 0)
+            totalVolume: totalVolume
         };
 
-        // Save to Firestore
-        db.collection("workouts").add(logEntry)
-            .then(() => {
-                alert(`${currentExercise} saved!`);
-                // RE-FETCH all data and update charts
-                fetchWorkoutsAndDrawCharts();
-                // Go back to step 1
-                showLogStep('log-step-muscles');
-            })
-            .catch(error => {
-                console.error("Error saving workout: ", error);
-            });
+        db.collection("workouts").add(logEntry).then(() => {
+            alert("Workout Saved! Great job!");
+            fetchWorkoutsAndDrawCharts(); // Refresh data
+            showLogStep('log-step-muscles'); // Reset tracker
+            switchTab('page-history'); // Show the user their new log
+        }).catch(err => console.error(err));
     });
 
-    // --- 7. DASHBOARD & CHART LOGIC ---
 
-    // Main data fetch function
+    // --- 6. DATA & CHARTS ---
+
     async function fetchWorkoutsAndDrawCharts() {
         if (!currentUser) return;
-
         try {
-            const querySnapshot = await db.collection("workouts")
+            const snapshot = await db.collection("workouts")
                 .where("userId", "==", currentUser.uid)
-                .orderBy("date", "desc") // Get newest first
+                .orderBy("date", "desc")
                 .get();
             
-            workoutLogs = []; // Clear local cache
-            querySnapshot.forEach(doc => {
-                workoutLogs.push(doc.data());
-            });
+            workoutLogs = [];
+            snapshot.forEach(doc => workoutLogs.push(doc.data()));
 
-            // Now that data is fresh, draw both charts
             populateChartFilter();
             drawProgressChart();
             drawMuscleDoughnutChart();
+            renderHistoryTable(workoutLogs);
 
         } catch (error) {
-            console.error("Error fetching workouts: ", error);
+            console.error("Data Error:", error);
             if (error.code === 'failed-precondition') {
-                alert("Error: Missing database index. Please check the browser console, click the link to create the Firebase index, and then refresh.");
-            } else {
-                alert("Could not load workout data.");
+                 alert("Console Error: Index needed. Check console for link.");
             }
         }
     }
 
-    // Populate the dropdown filter for the line chart
-    function populateChartFilter() {
-        const loggedMuscles = [...new Set(workoutLogs.map(log => log.muscle))];
-        chartMuscleSelect.innerHTML = '<option value="all">Overall Progress</option>';
-        loggedMuscles.forEach(muscle => {
-            const option = document.createElement('option');
-            option.value = muscle;
-            option.textContent = muscle;
-            chartMuscleSelect.appendChild(option);
-        });
-    }
-
-    // Redraw the line chart when the filter changes
-    chartMuscleSelect.addEventListener('change', drawProgressChart);
-
-    // Draw Line Chart (More Appealing)
-    function drawProgressChart() {
-        const ctx = lineChartCanvas.getContext('2d');
-        const selectedMuscle = chartMuscleSelect.value;
-
-        const chartLogs = workoutLogs.filter(log => {
-            return selectedMuscle === 'all' || log.muscle === selectedMuscle;
-        }).reverse(); // Reverse back to chronological order for chart
-
-        const dataByDate = {};
-        chartLogs.forEach(log => {
-            const date = log.date;
-            if (!dataByDate[date]) dataByDate[date] = 0;
-            dataByDate[date] += log.totalVolume;
-        });
-
-        const sortedDates = Object.keys(dataByDate).sort();
-        const chartLabels = sortedDates;
-        const chartData = sortedDates.map(date => dataByDate[date]);
-
-        if (lineChartInstance) {
-            lineChartInstance.destroy();
+    // History Table Rendering
+    function renderHistoryTable(logs) {
+        if (!logs.length) {
+            logTableContainer.innerHTML = '<p style="text-align:center; padding:20px;">No workouts logged yet. Go track one!</p>';
+            return;
         }
 
-        // --- Create Gradient ---
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Exercise</th>
+                        <th>Sets Details</th>
+                        <th>Vol</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        logs.forEach(log => {
+            // Create visual tags for sets: "10x50kg"
+            const setsHtml = log.sets.map(s => 
+                `<span class="set-tag">${s.reps}x${s.weight}</span>`
+            ).join(' ');
+
+            html += `
+                <tr>
+                    <td style="white-space:nowrap;">${log.date}</td>
+                    <td>
+                        <div style="color:white; font-weight:bold;">${log.exercise}</div>
+                        <div style="font-size:0.8em; color:#e94560;">${log.muscle}</div>
+                    </td>
+                    <td>${setsHtml}</td>
+                    <td style="font-weight:bold;">${log.totalVolume}</td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        logTableContainer.innerHTML = html;
+    }
+
+    // Filter Logic
+    logFilterDate.addEventListener('change', () => {
+        const date = logFilterDate.value;
+        if (date) {
+            const filtered = workoutLogs.filter(l => l.date === date);
+            renderHistoryTable(filtered);
+        }
+    });
+    logFilterClear.addEventListener('click', () => {
+        logFilterDate.value = '';
+        renderHistoryTable(workoutLogs);
+    });
+
+    // Chart 1: Progress Line
+    function populateChartFilter() {
+        const muscles = [...new Set(workoutLogs.map(l => l.muscle))];
+        chartMuscleSelect.innerHTML = '<option value="all">Overall Volume</option>';
+        muscles.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m;
+            chartMuscleSelect.appendChild(opt);
+        });
+    }
+    
+    chartMuscleSelect.addEventListener('change', drawProgressChart);
+
+    function drawProgressChart() {
+        const ctx = lineChartCanvas.getContext('2d');
+        const selection = chartMuscleSelect.value;
+
+        // Filter and Sort for Chart (Oldest first)
+        const relevantLogs = workoutLogs.filter(l => 
+            selection === 'all' || l.muscle === selection
+        ).reverse(); 
+
+        // Aggregate by Date
+        const dataMap = {};
+        relevantLogs.forEach(l => {
+            dataMap[l.date] = (dataMap[l.date] || 0) + l.totalVolume;
+        });
+
+        const labels = Object.keys(dataMap);
+        const data = Object.values(dataMap);
+
+        if (lineChartInstance) lineChartInstance.destroy();
+
+        // Create Gradient
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(0, 123, 255, 0.5)');
-        gradient.addColorStop(1, 'rgba(0, 123, 255, 0)');
-        // -------------------------
+        gradient.addColorStop(0, 'rgba(233, 69, 96, 0.6)'); // Sporty Red
+        gradient.addColorStop(1, 'rgba(233, 69, 96, 0.0)');
 
         lineChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: chartLabels,
+                labels: labels,
                 datasets: [{
-                    label: `Total Daily Volume (${selectedMuscle})`,
-                    data: chartData,
-                    backgroundColor: gradient, // Use gradient
-                    borderColor: 'rgba(0, 123, 255, 1)',
-                    borderWidth: 2,
-                    tension: 0.3, // Smoother curve
-                    fill: true, // Fill the area
-                    pointBackgroundColor: 'rgba(0, 123, 255, 1)'
-                }]
-            },
-            options: {
-                scales: { y: { beginAtZero: true }, x: { title: { display: true, text: 'Date' } } },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-    }
-
-    // Draw Doughnut Chart (NEW)
-    function drawMuscleDoughnutChart() {
-        const ctx = doughnutChartCanvas.getContext('2d');
-        
-        // Get logs from the last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const last30DaysLogs = workoutLogs.filter(log => new Date(log.date) > thirtyDaysAgo);
-
-        // Sum volume by muscle
-        const volumeByMuscle = {};
-        last30DaysLogs.forEach(log => {
-            if (!volumeByMuscle[log.muscle]) {
-                volumeByMuscle[log.muscle] = 0;
-            }
-            volumeByMuscle[log.muscle] += log.totalVolume;
-        });
-
-        const chartLabels = Object.keys(volumeByMuscle);
-        const chartData = Object.values(volumeByMuscle);
-
-        if (doughnutChartInstance) {
-            doughnutChartInstance.destroy();
-        }
-
-        doughnutChartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: chartLabels,
-                datasets: [{
-                    label: 'Volume by Muscle',
-                    data: chartData,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(153, 102, 255, 0.8)',
-                        'rgba(255, 159, 64, 0.8)',
-                        'rgba(22, 7, 232, 0.8)'
-
-                    ],
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                    borderWidth: 1
+                    label: 'Volume (kg)',
+                    data: data,
+                    borderColor: '#e94560',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aeb8c3' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aeb8c3' } }
                 }
             }
         });
     }
 
-    // --- 8. INITIALIZE APP ---
-    populateMuscleList(); // Build the muscle buttons
-    // Auth listener (onAuthStateChanged) will handle which page to show
+    // Chart 2: Muscle Doughnut
+    function drawMuscleDoughnutChart() {
+        const ctx = doughnutChartCanvas.getContext('2d');
+        // Last 30 days
+        const limit = new Date(); limit.setDate(limit.getDate() - 30);
+        const recentLogs = workoutLogs.filter(l => new Date(l.date) >= limit);
+
+        const counts = {};
+        recentLogs.forEach(l => counts[l.muscle] = (counts[l.muscle] || 0) + 1);
+
+        if (doughnutChartInstance) doughnutChartInstance.destroy();
+
+        doughnutChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(counts),
+                datasets: [{
+                    data: Object.values(counts),
+                    backgroundColor: [
+                        '#e94560', '#0f3460', '#533483', '#16213e', '#e9456088', '#ffffff'
+                    ],
+                    borderColor: '#1a1a2e',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { color: '#fff' } } }
+            }
+        });
+    }
+
+    // Start
+    populateMuscleList();
 });
