@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProFit Tracker</title>
+    <title>ProFit | Trainer & Client</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Add Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <!-- AUTH PAGE -->
-    <section id="page-auth" class="page active">
+    <section id="page-auth" class="page-view active">
         <div class="auth-container">
-            <h1 class="brand-title">ProFit <span class="accent">Tracker</span></h1>
-            <p class="brand-subtitle">Level Up Your Fitness</p>
+            <h1 class="brand-title">ProFit <span class="accent">Connect</span></h1>
             
             <div class="auth-flipper">
                 <!-- Login -->
@@ -30,94 +28,110 @@
                             <input type="password" id="login-password" placeholder="Password" required>
                         </div>
                         <button type="submit" class="btn-primary">LOGIN</button>
-                        <p>New here? <a href="#" id="show-register">Start your journey</a></p>
+                        <p class="switch-text">New here? <a href="#" id="show-register">Create Account</a></p>
                     </form>
                 </div>
                 <!-- Register -->
                 <div class="auth-card auth-back">
                     <form id="register-form" class="auth-form">
-                        <h2>Join the Club</h2>
+                        <h2>Create Account</h2>
+                        
+                        <!-- Role Toggle -->
+                        <div class="role-switch">
+                            <div class="role-option active" data-role="client">Client</div>
+                            <div class="role-option" data-role="trainer">Trainer</div>
+                        </div>
+
                         <div class="input-group">
                             <i class="fas fa-envelope"></i>
                             <input type="email" id="register-email" placeholder="Email" required>
                         </div>
                         <div class="input-group">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="register-password" placeholder="Password (min 6 chars)" required>
+                            <input type="password" id="register-password" placeholder="Password" required>
                         </div>
+                        
+                        <!-- Only for Clients -->
+                        <div class="input-group" id="trainer-code-group">
+                            <i class="fas fa-user-tie"></i>
+                            <input type="email" id="trainer-code" placeholder="Trainer's Email (Optional)">
+                        </div>
+
                         <button type="submit" class="btn-primary">REGISTER</button>
-                        <p>Already a pro? <a href="#" id="show-login">Login here</a></p>
+                        <p class="switch-text">Has account? <a href="#" id="show-login">Login</a></p>
                     </form>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- MAIN APP STRUCTURE -->
+    <!-- APP LAYOUT -->
     <div id="app-layout" style="display: none;">
         
-        <!-- Top Header -->
         <header>
             <div class="header-content">
-                <div class="logo">ProFit <span class="accent">Tracker</span></div>
-                <button id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
-            <!-- Motivation Banner -->
-            <div id="motivation-banner">
-                <p id="daily-quote">"The only bad workout is the one that didn't happen."</p>
+                <div class="logo">ProFit <span class="accent">Connect</span></div>
+                <div class="user-info">
+                    <span id="user-badge" class="badge">Client</span>
+                    <button id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
             </div>
         </header>
 
         <main>
             
-            <!-- 1. DASHBOARD PAGE -->
-            <section id="page-dashboard" class="page-view active">
-                <h2>Dashboard</h2>
-                
+            <!-- TRAINER VIEW: CLIENT LIST -->
+            <section id="page-trainer-dashboard" class="page-section">
+                <h2>My Clients</h2>
+                <div id="client-list-container" class="client-grid">
+                    <!-- Clients injected here -->
+                </div>
+            </section>
+
+            <!-- CLIENT VIEW: STATS DASHBOARD -->
+            <!-- Trainers see this when they click a client -->
+            <section id="page-dashboard" class="page-section">
+                <div class="dash-header">
+                    <h2 id="dashboard-title">My Progress</h2>
+                    <button id="trainer-back-btn" class="btn-small" style="display:none;"><i class="fas fa-arrow-left"></i> Clients</button>
+                </div>
+
+                <!-- NEW: EXERCISE PROGRESS CARDS -->
+                <h3 class="section-label">Latest Gains (vs Last Workout)</h3>
+                <div id="progress-cards-container" class="progress-scroller">
+                    <!-- Cards injected via JS -->
+                    <p class="empty-state">Log more workouts to see gains comparison!</p>
+                </div>
+
                 <!-- Charts -->
                 <div class="dashboard-grid">
                     <div class="card chart-card">
-                        <div class="card-header">
-                            <h3>Volume Progress</h3>
-                            <select id="chart-muscle-select">
-                                <option value="all">Overall Volume</option>
-                            </select>
-                        </div>
+                        <h3>Volume History</h3>
                         <div class="chart-wrapper">
                             <canvas id="progress-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="card chart-card">
-                        <h3>Muscle Split (30 Days)</h3>
-                        <div class="chart-wrapper doughnut-wrapper">
-                            <canvas id="muscle-doughnut-chart"></canvas>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- 2. LOG WORKOUT PAGE (The Wizard) -->
-            <section id="page-tracker" class="page-view">
+            <!-- TRACKER (WIZARD) -->
+            <section id="page-tracker" class="page-section">
                 <h2>Track Workout</h2>
-                
                 <div id="log-flow-container">
                     <!-- Step 1 -->
                     <div id="log-step-muscles" class="log-step active">
                         <h3>Target Muscle</h3>
                         <div id="muscle-list" class="grid-buttons"></div>
                     </div>
-
                     <!-- Step 2 -->
                     <div id="log-step-exercises" class="log-step">
-                        <button class="back-link" data-target="log-step-muscles"><i class="fas fa-arrow-left"></i> Back to Muscles</button>
+                        <button class="back-link" data-target="log-step-muscles"><i class="fas fa-arrow-left"></i> Back</button>
                         <h3 id="exercise-list-title">Select Exercise</h3>
                         <div id="exercise-list" class="list-buttons"></div>
                     </div>
-
                     <!-- Step 3 -->
                     <div id="log-step-entry" class="log-step">
-                        <button class="back-link" data-target="log-step-exercises"><i class="fas fa-arrow-left"></i> Back to Exercises</button>
+                        <button class="back-link" data-target="log-step-exercises"><i class="fas fa-arrow-left"></i> Back</button>
                         <h3 id="log-entry-title">Log Sets</h3>
                         <form id="log-form">
                             <div id="set-entries"></div>
@@ -130,83 +144,39 @@
                 </div>
             </section>
 
-            <!-- 3. HISTORY PAGE (The Table) -->
-            <section id="page-history" class="page-view">
-                <h2>Workout History</h2>
-                
+            <!-- HISTORY TABLE -->
+            <section id="page-history" class="page-section">
+                <h2>History Log</h2>
                 <div class="card">
-                    <div class="filter-bar">
-                        <div class="filter-group">
-                            <label>Filter Date:</label>
-                            <input type="date" id="log-filter-date">
-                        </div>
-                        <button id="log-filter-clear" class="btn-small">Clear</button>
-                    </div>
-                    
-                    <div class="table-responsive" id="log-table-container">
-                        <p style="text-align:center; color:#888;">Loading your history...</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 4. GUIDE PAGE (For Noobies) -->
-            <section id="page-guide" class="page-view">
-                <h2>Beginner's Guide</h2>
-                <div class="guide-grid">
-                    <div class="card guide-card">
-                        <i class="fas fa-dumbbell icon-large"></i>
-                        <h3>Warm Up First</h3>
-                        <p>Never skip warm-ups. 5-10 minutes of light cardio or dynamic stretching prepares your muscles and prevents injury.</p>
-                    </div>
-                    <div class="card guide-card">
-                        <i class="fas fa-water icon-large"></i>
-                        <h3>Hydration</h3>
-                        <p>Drink water before, during, and after your workout. Muscles need hydration to recover and perform.</p>
-                    </div>
-                    <div class="card guide-card">
-                        <i class="fas fa-bed icon-large"></i>
-                        <h3>Rest Days</h3>
-                        <p>Muscles grow while you sleep, not while you lift. Aim for 7-9 hours of sleep and take rest days.</p>
-                    </div>
-                    <div class="card guide-card">
-                        <i class="fas fa-clipboard-list icon-large"></i>
-                        <h3>Progressive Overload</h3>
-                        <p>To grow, you must increase difficulty over time. Add more weight, reps, or sets gradually.</p>
-                    </div>
+                    <div class="table-responsive" id="log-table-container"></div>
                 </div>
             </section>
 
         </main>
 
-        <!-- Bottom Navigation Bar (App-like feel) -->
-        <nav class="bottom-nav">
+        <!-- BOTTOM NAV (Only for Clients) -->
+        <nav class="bottom-nav" id="client-nav">
             <button class="nav-item active" data-target="page-dashboard">
-                <i class="fas fa-chart-line"></i>
-                <span>Dashboard</span>
+                <i class="fas fa-chart-line"></i> Stats
             </button>
             <button class="nav-item" data-target="page-tracker">
-                <i class="fas fa-plus-circle"></i>
-                <span>Track</span>
+                <i class="fas fa-plus-circle"></i> Track
             </button>
             <button class="nav-item" data-target="page-history">
-                <i class="fas fa-history"></i>
-                <span>History</span>
-            </button>
-            <button class="nav-item" data-target="page-guide">
-                <i class="fas fa-book-open"></i>
-                <span>Guide</span>
+                <i class="fas fa-history"></i> Log
             </button>
         </nav>
 
     </div>
 
-    <!-- Firebase & Chart.js -->
+    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
+    
     <script>
+        // CONFIG
         const firebaseConfig = {
           apiKey: "AIzaSyDOjKlUpCu0MrDMfsoNv1zjW5hLEIq_CAE",
           authDomain: "workout-app-767ec.firebaseapp.com",
@@ -220,7 +190,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
     </script>
-
     <script src="app.js"></script>
 </body>
 </html>
